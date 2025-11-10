@@ -15,6 +15,7 @@ const getTwilioConfig = () => {
 
 // Initialize Twilio client
 const { accountSid, authToken, phoneNumber } = getTwilioConfig();
+console.log(accountSid,authToken,phoneNumber, 'creds')
 const client = twilio(accountSid, authToken);
 
 // Verify Twilio configuration
