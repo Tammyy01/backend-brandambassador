@@ -449,43 +449,45 @@ export class ApplicationController {
     }
   }
 
+
   // Handle video upload from iOS file path
 static async uploadVideoFromPath(req: Request, res: Response): Promise<Response> {
-    try {
-      const { applicationId } = req.params;
-      const { videoPath, fileName, mimeType } = req.body;
-  
-      if (!videoPath) {
-        return sendBadRequestResponse(res, 'No video path provided');
-      }
-  
-      const application = await AmbassadorApplication.findById(applicationId);
-      if (!application) {
-        return sendNotFoundResponse(res, 'Application not found');
-      }
-  
-      console.log('Processing video from path:', videoPath);
-  
-      // For iOS, we'll create a simple success response since we can't access the file directly
-      // In a real implementation, you'd use Cordova on the backend or a different approach
-      
-      // Update application with video info
-      application.videoFilename = fileName || 'ambassador-video.mp4';
-      application.videoUrl = videoPath; // Store the original path for now
-      application.videoUploaded = true;
-      application.videoReviewStatus = 'pending';
-      application.progress.video = true;
-      await application.save();
-  
-      console.log(`✅ Video marked as uploaded for application: ${applicationId}`);
-  
-      return sendSuccessResponse(res, 'Video uploaded successfully', {
-        videoUploaded: true,
-        progress: application.progress
-      });
-    } catch (error: any) {
-      console.error('❌ Video upload from path error:', error);
-      return sendServerErrorResponse(res, 'Failed to process video: ' + error.message);
+  try {
+    const { applicationId } = req.params;
+    const { videoPath, fileName, mimeType } = req.body;
+
+    if (!videoPath) {
+      return sendBadRequestResponse(res, 'No video path provided');
     }
+
+    const application = await AmbassadorApplication.findById(applicationId);
+    if (!application) {
+      return sendNotFoundResponse(res, 'Application not found');
+    }
+
+    console.log('Processing video from path:', videoPath);
+
+    // For iOS, we'll create a simple success response since we can't access the file directly
+    // In a real implementation, you'd use Cordova on the backend or a different approach
+    
+    // Update application with video info
+    application.videoFilename = fileName || 'ambassador-video.mp4';
+    application.videoUrl = videoPath; // Store the original path for now
+    application.videoUploaded = true;
+    application.videoReviewStatus = 'pending';
+    application.progress.video = true;
+    await application.save();
+
+    console.log(`✅ Video marked as uploaded for application: ${applicationId}`);
+
+    return sendSuccessResponse(res, 'Video uploaded successfully', {
+      videoUploaded: true,
+      progress: application.progress
+    });
+  } catch (error: any) {
+    console.error('❌ Video upload from path error:', error);
+    return sendServerErrorResponse(res, 'Failed to process video: ' + error.message);
   }
+}
+
 }

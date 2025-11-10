@@ -16,6 +16,12 @@ router.patch(
   ApplicationController.uploadVideo
 );
 
+router.post(
+  '/applications/:applicationId/video', 
+  uploadVideo.single('video'),
+  ApplicationController.uploadVideo
+);
+
 // Phone verification routes
 router.patch('/applications/:applicationId/phone', ApplicationController.addPhoneNumber);
 router.post('/applications/:applicationId/phone/request-otp', ApplicationController.requestPhoneOTP);
@@ -31,6 +37,7 @@ router.post('/applications/:applicationId/submit', ApplicationController.submitA
 
 // Video serving route
 router.get('/uploads/videos/:filename', ApplicationController.serveVideo);
+
 // Add this route to your application routes
 router.post('applications/:applicationId/upload-video-path', ApplicationController.uploadVideoFromPath);
 export default router;
