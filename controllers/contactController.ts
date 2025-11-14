@@ -17,7 +17,7 @@ export class ContactController {
       const filter: any = { applicationId: application._id }
       if (q) {
         const regex = new RegExp(q, 'i')
-        filter.$or = [{ name: regex }, { company: regex }, { event: regex }, { note: regex }]
+        filter.$or = [{ name: regex }, { company: regex }, { event: regex }, { note: regex }, { address: regex }, { linkedinUrl: regex }]
       }
 
       const contacts = await Contact.find(filter).sort({ updatedAt: -1 })
@@ -30,7 +30,7 @@ export class ContactController {
   static async create(req: Request, res: Response): Promise<Response> {
     try {
       const { applicationId } = req.params
-      const { name, company, avatar, event, note, phone, email, starred } = req.body
+      const { name, company, avatar, event, note, phone, email, address, linkedinUrl, starred } = req.body
 
       if (!name) {
         return sendBadRequestResponse(res, 'Name is required')
@@ -50,6 +50,8 @@ export class ContactController {
         note,
         phone,
         email,
+        address,
+        linkedinUrl,
         starred: Boolean(starred)
       })
 

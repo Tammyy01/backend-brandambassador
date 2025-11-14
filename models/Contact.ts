@@ -9,6 +9,8 @@ export interface IContact extends Document {
   note?: string
   phone?: string
   email?: string
+  address?: string
+  linkedinUrl?: string
   starred: boolean
   createdAt: Date
   updatedAt: Date
@@ -24,11 +26,13 @@ const ContactSchema: Schema = new Schema(
     note: { type: String },
     phone: { type: String },
     email: { type: String },
+    address: { type: String },
+    linkedinUrl: { type: String },
     starred: { type: Boolean, default: false }
   },
   { timestamps: true }
 )
 
-ContactSchema.index({ name: 'text', company: 'text', event: 'text', note: 'text' })
+ContactSchema.index({ name: 'text', company: 'text', event: 'text', note: 'text', address: 'text', linkedinUrl: 'text' })
 
 export default mongoose.model<IContact>('Contact', ContactSchema)
