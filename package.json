@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nodemon server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build":"tsc",
+    "build": "tsc",
     "start": "node dist/server.js"
   },
   "keywords": [],
@@ -13,16 +13,18 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@sendgrid/mail": "^7.7.0",
     "@types/multer": "^2.0.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "groq": "^4.16.0",
+    "groq-sdk": "^0.35.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.2",
     "multer": "^2.0.2",
-    "@sendgrid/mail": "^7.7.0",
     "twilio": "^5.10.4"
   },
   "devDependencies": {
