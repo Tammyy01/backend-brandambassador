@@ -8,6 +8,7 @@ import profileRoutes from './routes/profileRoutes';
 import logoutRoutes from './routes/logoutRoutes';
 import contactsRoutes from './routes/contactsRoutes';
 import groqRoutes from './routes/groqRoutes';
+import eventsRoutes from './routes/eventsRoutes';
 
 dotenv.config();
 
@@ -60,6 +61,7 @@ app.use('/api', loginRoutes);
 app.use('/api', logoutRoutes);
 app.use('/api', contactsRoutes);
 app.use('/api', groqRoutes);
+app.use('/api', eventsRoutes);
 
 // Basic health check route
 app.get('/api/health', (req, res) => {
