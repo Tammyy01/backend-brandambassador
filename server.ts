@@ -9,6 +9,9 @@ import logoutRoutes from './routes/logoutRoutes';
 import contactsRoutes from './routes/contactsRoutes';
 import groqRoutes from './routes/groqRoutes';
 import eventsRoutes from './routes/eventsRoutes';
+import dashboardRoutes from './routes/dashboardRoutes';
+import reimbursementRoutes from './routes/reimbursementRoutes';
+import callRoutes from './routes/callRoutes';
 
 dotenv.config();
 
@@ -62,6 +65,9 @@ app.use('/api', logoutRoutes);
 app.use('/api', contactsRoutes);
 app.use('/api', groqRoutes);
 app.use('/api', eventsRoutes);
+app.use('/api', dashboardRoutes);
+app.use('/api', reimbursementRoutes);
+app.use('/api', callRoutes);
 
 // Basic health check route
 app.get('/api/health', (req, res) => {
