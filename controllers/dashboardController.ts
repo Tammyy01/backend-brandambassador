@@ -45,14 +45,31 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
 export const getChartData = async (req: Request, res: Response) => {
   try {
-    // In a real app, filter by user. For now, global events.
-    // We want to group events by month for the last 6 months or so.
+    const { type, applicationId } = req.query; // 'events' or 'calls'
     
+    if (!applicationId) {
+       return res.status(400).json({ success: false, message: 'Application ID is required' });
+    }
+
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5); // Go back 5 months + current = 6
     
-    const events = await Event.aggregate([
-      { $match: { date: { $gte: sixMonthsAgo } } },
+    let model: any = Event;
+    let matchQuery: any = { 
+      date: { $gte: sixMonthsAgo } 
+    };
+
+    if (type === 'calls') {
+      model = Call;
+      matchQuery.applicationId = new (require('mongoose').Types.ObjectId)(applicationId as string);
+    } else {
+      // For events, we check if the user is in the attendees list
+      // Assuming attendees is an array of ObjectIds
+      matchQuery.attendees = new (require('mongoose').Types.ObjectId)(applicationId as string);
+    }
+
+    const data = await model.aggregate([
+      { $match: matchQuery },
       {
         $group: {
           _id: { $month: "$date" },
@@ -68,7 +85,7 @@ export const getChartData = async (req: Request, res: Response) => {
     
     // Create a map of existing data
     const dataMap = new Map();
-    events.forEach((e: any) => {
+    data.forEach((e: any) => {
       dataMap.set(e._id, e.count);
     });
 
