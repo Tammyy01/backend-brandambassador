@@ -25,6 +25,9 @@ export interface IAmbassadorApplication extends Document {
     email: boolean;
   };
   
+  // Push Notifications
+  pushSubscription?: any;
+
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
@@ -52,7 +55,8 @@ const AmbassadorApplicationSchema: Schema = new Schema({
     video: { type: Boolean, default: false },
     phone: { type: Boolean, default: false },
     email: { type: Boolean, default: false }
-  }
+  },
+  pushSubscription: { type: Schema.Types.Mixed }
 }, {
   timestamps: true
 });

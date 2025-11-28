@@ -12,6 +12,7 @@ import eventsRoutes from './routes/eventsRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
 import reimbursementRoutes from './routes/reimbursementRoutes';
 import callRoutes from './routes/callRoutes';
+import notificationRoutes from './routes/notificationRoutes';
 
 dotenv.config();
 
@@ -68,6 +69,7 @@ app.use('/api', eventsRoutes);
 app.use('/api', dashboardRoutes);
 app.use('/api', reimbursementRoutes);
 app.use('/api', callRoutes);
+app.use('/api', notificationRoutes);
 
 // Basic health check route
 app.get('/api/health', (req, res) => {
