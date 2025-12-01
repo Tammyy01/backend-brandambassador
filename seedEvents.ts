@@ -7,7 +7,7 @@ dotenv.config();
 const sampleEvents = [
   {
     title: "Lagos Tech Summit",
-    date: new Date("2025-09-04"),
+    date: new Date("2025-12-07"),
     time: "10:00AM",
     description: "The biggest tech gathering in West Africa. Join us at the Landmark Centre for a day of innovation and networking.",
     location: "Landmark Centre, Victoria Island, Lagos",
@@ -16,7 +16,7 @@ const sampleEvents = [
   },
   {
     title: "Abuja AI Conference",
-    date: new Date("2025-10-15"),
+    date: new Date("2025-12-05"),
     time: "9:00AM",
     description: "Exploring the future of Artificial Intelligence in governance and public sector. Held at the International Conference Centre.",
     location: "International Conference Centre, Garki, Abuja",
@@ -25,7 +25,7 @@ const sampleEvents = [
   },
   {
     title: "Port Harcourt Startup Meetup",
-    date: new Date("2025-11-29"),
+    date: new Date("2025-12-02"),
     time: "5:00PM",
     description: "A meetup for founders and investors in the Garden City. Connect and grow your business.",
     location: "Tech Creek, Aba Road, Port Harcourt",
