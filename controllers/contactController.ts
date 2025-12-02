@@ -30,7 +30,7 @@ export class ContactController {
   static async create(req: Request, res: Response): Promise<Response> {
     try {
       const { userId } = req.params
-      const { name, company, avatar, event, note, phone, email, address, linkedinUrl, starred } = req.body
+      const { name, company, avatar, event, note, phone, email, address, linkedinUrl, starred, title } = req.body
 
       if (!name) {
         return sendBadRequestResponse(res, 'Name is required')
@@ -52,6 +52,7 @@ export class ContactController {
         email,
         address,
         linkedinUrl,
+        title,
         starred: Boolean(starred)
       })
 
@@ -87,7 +88,27 @@ export class ContactController {
     }
   }
 
-  static async remove(req: Request, res: Response): Promise<Response> {
+  static async get(req: Request, res: Response): Promise<Response> {
+    try {
+      const { userId, contactId } = req.params
+
+      const user = await User.findById(userId)
+      if (!user) {
+        return sendNotFoundResponse(res, 'User not found')
+      }
+
+      const contact = await Contact.findOne({ _id: contactId, applicationId: user._id })
+      if (!contact) {
+        return sendNotFoundResponse(res, 'Contact not found')
+      }
+
+      return sendSuccessResponse(res, 'Contact retrieved', { contact })
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to retrieve contact: ' + error.message)
+    }
+  }
+
+  static async delete(req: Request, res: Response): Promise<Response> {
     try {
       const { userId, contactId } = req.params
 
@@ -104,6 +125,29 @@ export class ContactController {
       return sendSuccessResponse(res, 'Contact deleted', { id: contactId })
     } catch (error: any) {
       return sendServerErrorResponse(res, 'Failed to delete contact: ' + error.message)
+    }
+  }
+
+  static async toggleStar(req: Request, res: Response): Promise<Response> {
+    try {
+      const { userId, contactId } = req.params
+
+      const user = await User.findById(userId)
+      if (!user) {
+        return sendNotFoundResponse(res, 'User not found')
+      }
+
+      const contact = await Contact.findOne({ _id: contactId, applicationId: user._id })
+      if (!contact) {
+        return sendNotFoundResponse(res, 'Contact not found')
+      }
+
+      contact.starred = !contact.starred
+      await contact.save()
+
+      return sendSuccessResponse(res, 'Contact star status updated', { contact })
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to update contact star status: ' + error.message)
     }
   }
 }

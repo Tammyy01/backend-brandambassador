@@ -6,9 +6,13 @@ export interface IContact extends Document {
   email?: string;
   phone?: string;
   company?: string;
-  role?: string;
-  notes?: string;
+  title?: string;
+  note?: string;
   avatar?: string;
+  address?: string;
+  event?: string;
+  linkedinUrl?: string;
+  starred: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,20 +36,33 @@ const ContactSchema: Schema = new Schema({
   company: {
     type: String
   },
-  role: {
+  title: {
     type: String
   },
-  notes: {
+  note: {
     type: String
   },
   avatar: {
     type: String
+  },
+  address: {
+    type: String
+  },
+  event: {
+    type: String
+  },
+  linkedinUrl: {
+    type: String
+  },
+  starred: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true
 });
 
 // Index for search
-ContactSchema.index({ name: 'text', company: 'text', role: 'text' });
+ContactSchema.index({ name: 'text', company: 'text', title: 'text', note: 'text', event: 'text' });
 
 export default mongoose.model<IContact>('Contact', ContactSchema);

@@ -15,24 +15,26 @@ export const generateOTP = (length: number = 4): string => {
   return otp;
 };
 
-export const createOTP = async (applicationId: string, type: 'phone' | 'email'): Promise<{otp: string; error?: string}> => {
+export const createOTP = async (userId: string, type: 'phone' | 'email'): Promise<{otp: string; error?: string}> => {
   try {
     const otp = generateOTP(parseInt(process.env.OTP_LENGTH || '4'));
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + parseInt(process.env.OTP_EXPIRY_MINUTES || '10'));
 
-    // Invalidate previous OTPs for this application and type
+    // Invalidate previous OTPs for this user and type
     await OTP.updateMany(
-      { applicationId, type, verified: false },
+      { userId, type, verified: false },
       { $set: { verified: true } }
     );
 
     // Create new OTP
     await OTP.create({
-      applicationId,
+      userId,
       type,
       otp,
       expiresAt,
+      attempts: 0,
+      verified: false
     });
 
     return { otp };
@@ -45,10 +47,10 @@ export const createOTP = async (applicationId: string, type: 'phone' | 'email'):
   }
 };
 
-export const verifyOTP = async (applicationId: string, type: 'phone' | 'email', otp: string): Promise<{success: boolean; error?: string}> => {
+export const verifyOTP = async (userId: string, type: 'phone' | 'email', otp: string): Promise<{success: boolean; error?: string}> => {
   try {
     const otpRecord = await OTP.findOne({
-      applicationId,
+      userId,
       type,
       otp,
       verified: false,
@@ -79,10 +81,10 @@ export const verifyOTP = async (applicationId: string, type: 'phone' | 'email', 
   }
 };
 
-export const canResendOTP = async (applicationId: string, type: 'phone' | 'email'): Promise<{canResend: boolean; waitTime?: number}> => {
+export const canResendOTP = async (userId: string, type: 'phone' | 'email'): Promise<{canResend: boolean; waitTime?: number}> => {
   try {
     const recentOTP = await OTP.findOne({
-      applicationId,
+      userId,
       type,
       createdAt: { $gt: new Date(Date.now() - 1 * 60 * 1000) } // 1 minute ago
     });

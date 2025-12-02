@@ -6,6 +6,8 @@ export interface IOTP extends Document {
   otp: string;
   expiresAt: Date;
   createdAt: Date;
+  attempts: number;
+  verified: boolean;
 }
 
 const OTPSchema: Schema = new Schema({
@@ -27,6 +29,14 @@ const OTPSchema: Schema = new Schema({
     type: Date,
     required: true,
     index: { expires: 0 } // Auto-delete document after expiration
+  },
+  attempts: {
+    type: Number,
+    default: 0
+  },
+  verified: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true
