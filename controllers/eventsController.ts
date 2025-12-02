@@ -1,87 +1,99 @@
-import { Request, Response } from 'express';
-import Event from '../models/Event';
-import AmbassadorApplication from '../models/AmbassadorApplication';
+import { Request, Response } from 'express'
+import Event from '../models/Event'
+import User from '../models/User'
+import { sendSuccessResponse, sendNotFoundResponse, sendServerErrorResponse } from '../helpers/responses/httpResponses'
 
-export const getEvents = async (req: Request, res: Response) => {
-  try {
-    const events = await Event.find().sort({ date: 1 });
-    res.status(200).json(events);
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
+export class EventsController {
+  static async list(req: Request, res: Response): Promise<Response> {
+    try {
+      const events = await Event.find().sort({ date: 1 })
+      return sendSuccessResponse(res, 'Events retrieved', { events })
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to retrieve events: ' + error.message)
+    }
   }
-};
 
-export const getEventById = async (req: Request, res: Response) => {
-  try {
-    const event = await Event.findById(req.params.id);
-    if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
+  static async get(req: Request, res: Response): Promise<Response> {
+    try {
+      const { id } = req.params
+      const event = await Event.findById(id).populate('attendees', 'name profileImage')
+      
+      if (!event) {
+        return sendNotFoundResponse(res, 'Event not found')
+      }
+
+      return sendSuccessResponse(res, 'Event retrieved', { event })
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to retrieve event: ' + error.message)
     }
-    res.status(200).json(event);
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
   }
-};
 
-export const createEvent = async (req: Request, res: Response) => {
-  try {
-    const newEvent = new Event(req.body);
-    const savedEvent = await newEvent.save();
-    res.status(201).json(savedEvent);
-  } catch (error: any) {
-    res.status(400).json({ message: error.message });
+  static async create(req: Request, res: Response): Promise<Response> {
+    try {
+      const { title, description, date, location } = req.body
+      
+      const event = await Event.create({
+        title,
+        description,
+        date,
+        location
+      })
+
+      return sendSuccessResponse(res, 'Event created', { event })
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to create event: ' + error.message)
+    }
   }
-};
 
-export const joinEvent = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { applicationId } = req.body; // Expecting applicationId in body
+  static async join(req: Request, res: Response): Promise<Response> {
+    try {
+      const { id } = req.params
+      const { userId } = req.body
 
-    if (!applicationId) {
-      return res.status(400).json({ message: 'Application ID is required' });
+      const user = await User.findById(userId)
+      if (!user) {
+        return sendNotFoundResponse(res, 'User not found')
+      }
+
+      const event = await Event.findByIdAndUpdate(
+        id,
+        { $addToSet: { attendees: userId } },
+        { new: true }
+      ).populate('attendees', 'name profileImage')
+
+      if (!event) {
+        return sendNotFoundResponse(res, 'Event not found')
+      }
+
+      return sendSuccessResponse(res, 'Joined event', { event })
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to join event: ' + error.message)
     }
-
-    const event = await Event.findById(id);
-    if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
-    }
-
-    if (event.attendees.includes(applicationId)) {
-      return res.status(400).json({ message: 'User already attending this event' });
-    }
-
-    event.attendees.push(applicationId);
-    await event.save();
-
-    res.status(200).json({ message: 'Successfully joined event', event });
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
   }
-};
 
-export const leaveEvent = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { applicationId } = req.body;
+  static async leave(req: Request, res: Response): Promise<Response> {
+    try {
+      const { id } = req.params
+      const { userId } = req.body
 
-    if (!applicationId) {
-      return res.status(400).json({ message: 'Application ID is required' });
+      const user = await User.findById(userId)
+      if (!user) {
+        return sendNotFoundResponse(res, 'User not found')
+      }
+
+      const event = await Event.findByIdAndUpdate(
+        id,
+        { $pull: { attendees: userId } },
+        { new: true }
+      ).populate('attendees', 'name profileImage')
+
+      if (!event) {
+        return sendNotFoundResponse(res, 'Event not found')
+      }
+
+      return sendSuccessResponse(res, 'Left event', { event })
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to leave event: ' + error.message)
     }
-
-    const event = await Event.findById(id);
-    if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
-    }
-
-    // Remove applicationId from attendees
-    event.attendees = event.attendees.filter(
-      (attendee) => attendee.toString() !== applicationId
-    );
-    await event.save();
-
-    res.status(200).json({ message: 'Successfully left event', event });
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
   }
 };

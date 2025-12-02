@@ -1,34 +1,44 @@
-import mongoose, { Document, Schema, Types } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IReimbursement extends Document {
-  applicationId: Types.ObjectId;
-  event: string;
-  date: Date;
-  expenseType: string;
+  applicationId: mongoose.Types.ObjectId; // Keeping applicationId for now as per summary, but referencing User
   amount: number;
-  status: 'Pending' | 'Approved' | 'Paid' | 'Rejected';
-  receiptImage?: string;
-  note?: string;
+  description: string;
+  status: 'pending' | 'approved' | 'rejected' | 'paid';
+  receiptUrl?: string;
+  date: Date;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const ReimbursementSchema: Schema = new Schema(
-  {
-    applicationId: { type: Schema.Types.ObjectId, ref: 'AmbassadorApplication', required: true, index: true },
-    event: { type: String, required: true },
-    date: { type: Date, required: true },
-    expenseType: { type: String, required: true },
-    amount: { type: Number, required: true },
-    status: { 
-      type: String, 
-      enum: ['Pending', 'Approved', 'Paid', 'Rejected'], 
-      default: 'Pending' 
-    },
-    receiptImage: { type: String },
-    note: { type: String },
+const ReimbursementSchema: Schema = new Schema({
+  applicationId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User', // Updated reference
+    required: true
   },
-  { timestamps: true }
-);
+  amount: {
+    type: Number,
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected', 'paid'],
+    default: 'pending'
+  },
+  receiptUrl: {
+    type: String
+  },
+  date: {
+    type: Date,
+    required: true
+  }
+}, {
+  timestamps: true
+});
 
 export default mongoose.model<IReimbursement>('Reimbursement', ReimbursementSchema);

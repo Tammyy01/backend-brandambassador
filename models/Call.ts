@@ -1,30 +1,39 @@
-import mongoose, { Document, Schema, Types } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ICall extends Document {
-  applicationId: Types.ObjectId;
-  contactId?: Types.ObjectId;
-  date: Date;
-  duration?: number;
+  applicationId: mongoose.Types.ObjectId; // Keeping applicationId for now as per summary, but referencing User
+  contactId: mongoose.Types.ObjectId;
+  duration: number;
   notes?: string;
-  status: 'Initiated' | 'Completed' | 'Missed';
+  date: Date;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const CallSchema: Schema = new Schema(
-  {
-    applicationId: { type: Schema.Types.ObjectId, ref: 'AmbassadorApplication', required: true, index: true },
-    contactId: { type: Schema.Types.ObjectId, ref: 'Contact' },
-    date: { type: Date, default: Date.now },
-    duration: { type: Number },
-    notes: { type: String },
-    status: { 
-      type: String, 
-      enum: ['Initiated', 'Completed', 'Missed'], 
-      default: 'Initiated' 
-    },
+const CallSchema: Schema = new Schema({
+  applicationId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User', // Updated reference
+    required: true
   },
-  { timestamps: true }
-);
+  contactId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Contact',
+    required: true
+  },
+  duration: {
+    type: Number,
+    required: true
+  },
+  notes: {
+    type: String
+  },
+  date: {
+    type: Date,
+    required: true
+  }
+}, {
+  timestamps: true
+});
 
 export default mongoose.model<ICall>('Call', CallSchema);

@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
-import AmbassadorApplication from '../models/AmbassadorApplication';
-import UserProfile from '../models/UserProfile';
+import User from '../models/User';
 import {
   sendSuccessResponse,
   sendBadRequestResponse,
@@ -22,38 +21,34 @@ export class LoginController {
 
       console.log(`🔐 Login OTP requested for phone: ${phone}`);
 
-      // Check if phone number exists in a completed application
-      const application = await AmbassadorApplication.findOne({
+      // Check if phone number exists in a completed user application
+      const user = await User.findOne({
         phone: phone,
         status: 'submitted', // Application must be submitted
         phoneVerified: true // Phone must be verified
       });
 
-      if (!application) {
+      if (!user) {
         console.log(`❌ No completed application found for phone: ${phone}`);
         return sendNotFoundResponse(res, 'No account found with this phone number. Please complete the ambassador application first.');
       }
 
       // Check if user has completed profile
-      const userProfile = await UserProfile.findOne({ 
-        applicationId: application._id 
-      });
-
-      if (!userProfile || !userProfile.isProfileCompleted) {
-        console.log(`❌ Profile not completed for application: ${application._id}`);
+      if (!user.isProfileCompleted) {
+        console.log(`❌ Profile not completed for user: ${user._id}`);
         return sendBadRequestResponse(res, 'Please complete your profile before logging in.');
       }
 
-      console.log(`✅ Valid user found for login: ${phone}, application: ${application._id}`);
+      console.log(`✅ Valid user found for login: ${phone}, user: ${user._id}`);
 
       // Check if we can resend OTP
-      const resendCheck = await canResendOTP(application._id!.toString(), 'phone');
+      const resendCheck = await canResendOTP(user._id!.toString(), 'phone');
       if (!resendCheck.canResend) {
         return sendBadRequestResponse(res, `Please wait ${resendCheck.waitTime} seconds before requesting a new OTP`);
       }
 
       // Generate and save OTP (reusing the same OTP service)
-      const otpResult = await createOTP(application._id!.toString(), 'phone');
+      const otpResult = await createOTP(user._id!.toString(), 'phone');
       if (otpResult.error) {
         return sendServerErrorResponse(res, 'Failed to generate OTP');
       }
@@ -67,7 +62,7 @@ export class LoginController {
       console.log(`✅ Login OTP sent to: ${phone}`);
 
       return sendSuccessResponse(res, 'OTP sent to your phone number', {
-        applicationId: application._id,
+        userId: user._id,
         phone: phone
       });
     } catch (error: any) {
@@ -87,46 +82,37 @@ export class LoginController {
 
       console.log(`🔐 Verifying login OTP for phone: ${phone}`);
 
-      // Find the application by phone number
-      const application = await AmbassadorApplication.findOne({
+      // Find the user by phone number
+      const user = await User.findOne({
         phone: phone,
         status: 'submitted',
         phoneVerified: true
       });
 
-      if (!application) {
+      if (!user) {
         return sendNotFoundResponse(res, 'No account found with this phone number');
       }
 
       // Verify OTP using existing service
-      const verificationResult = await verifyOTP(application._id!.toString(), 'phone', otp);
+      const verificationResult = await verifyOTP(user._id!.toString(), 'phone', otp);
       if (!verificationResult.success) {
         return sendBadRequestResponse(res, verificationResult.error || 'Invalid OTP');
       }
 
-      // Get user profile
-      const userProfile = await UserProfile.findOne({ 
-        applicationId: application._id 
-      });
-
-      if (!userProfile) {
-        return sendNotFoundResponse(res, 'User profile not found');
-      }
-
-      console.log(`✅ Login successful for: ${phone}, user: ${userProfile.name}`);
+      console.log(`✅ Login successful for: ${phone}, user: ${user.name}`);
 
       return sendSuccessResponse(res, 'Login successful', {
         loginSuccess: true,
         userProfile: {
-          id: userProfile._id,
-          name: userProfile.name,
-          email: userProfile.email,
-          linkedinUrl: userProfile.linkedinUrl,
-          profileImage: userProfile.profileImage,
-          qrCodeData: userProfile.qrCodeData,
-          isProfileCompleted: userProfile.isProfileCompleted
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          linkedinUrl: user.linkedinUrl,
+          profileImage: user.profileImage,
+          qrCodeData: user.qrCodeData,
+          isProfileCompleted: user.isProfileCompleted
         },
-        applicationId: application._id
+        userId: user._id
       });
     } catch (error: any) {
       console.error('❌ Verify login OTP error:', error);
@@ -143,29 +129,24 @@ export class LoginController {
         return sendBadRequestResponse(res, 'Phone number is required');
       }
 
-      const application = await AmbassadorApplication.findOne({
+      const user = await User.findOne({
         phone: phone,
         status: 'submitted',
         phoneVerified: true
       });
 
-      if (!application) {
+      if (!user) {
         return sendSuccessResponse(res, 'Phone number not found', {
           exists: false
         });
       }
 
-      // Check if profile is completed
-      const userProfile = await UserProfile.findOne({ 
-        applicationId: application._id 
-      });
-
-      const canLogin = userProfile && userProfile.isProfileCompleted;
+      const canLogin = user.isProfileCompleted;
 
       return sendSuccessResponse(res, 'Phone number check completed', {
         exists: true,
         canLogin: canLogin,
-        applicationId: application._id,
+        userId: user._id,
         profileCompleted: canLogin
       });
     } catch (error: any) {

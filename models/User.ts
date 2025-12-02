@@ -1,10 +1,19 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-export interface IAmbassadorApplication extends Document {
+export interface IUser extends Document {
   // Contact Information (collected during steps)
   phone?: string;
   email?: string;
   
+  // Profile Information (merged from UserProfile)
+  name?: string;
+  linkedinUrl?: string;
+  profileImage?: string;
+  qrCodeData?: string;
+  qrCodeGenerated?: boolean;
+  isProfileCompleted: boolean;
+  completedAt?: Date;
+
   // Verification Status
   phoneVerified: boolean;
   emailVerified: boolean;
@@ -33,9 +42,19 @@ export interface IAmbassadorApplication extends Document {
   updatedAt: Date;
 }
 
-const AmbassadorApplicationSchema: Schema = new Schema({
+const UserSchema: Schema = new Schema({
   phone: { type: String },
   email: { type: String },
+  
+  // Profile Fields
+  name: { type: String },
+  linkedinUrl: { type: String },
+  profileImage: { type: String },
+  qrCodeData: { type: String },
+  qrCodeGenerated: { type: Boolean, default: false },
+  isProfileCompleted: { type: Boolean, default: false },
+  completedAt: { type: Date },
+
   phoneVerified: { type: Boolean, default: false },
   emailVerified: { type: Boolean, default: false },
   videoUrl: { type: String },
@@ -61,4 +80,8 @@ const AmbassadorApplicationSchema: Schema = new Schema({
   timestamps: true
 });
 
-export default mongoose.model<IAmbassadorApplication>('AmbassadorApplication', AmbassadorApplicationSchema);
+// Indexes
+UserSchema.index({ phone: 1 });
+UserSchema.index({ email: 1 });
+
+export default mongoose.model<IUser>('User', UserSchema);

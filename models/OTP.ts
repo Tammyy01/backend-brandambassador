@@ -1,48 +1,37 @@
-import mongoose, { Document, Schema, Types } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IOTP extends Document {
-  applicationId: Types.ObjectId;
+  userId: mongoose.Types.ObjectId;
   type: 'phone' | 'email';
   otp: string;
   expiresAt: Date;
-  verified: boolean;
-  attempts: number;
   createdAt: Date;
-  updatedAt: Date;
 }
 
 const OTPSchema: Schema = new Schema({
-  applicationId: { 
-    type: Schema.Types.ObjectId, 
-    ref: 'AmbassadorApplication',
-    required: true 
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
-  type: { 
-    type: String, 
+  type: {
+    type: String,
     enum: ['phone', 'email'],
-    required: true 
+    required: true
   },
-  otp: { 
-    type: String, 
-    required: true 
+  otp: {
+    type: String,
+    required: true
   },
-  expiresAt: { 
-    type: Date, 
-    required: true 
-  },
-  verified: { 
-    type: Boolean, 
-    default: false 
-  },
-  attempts: { 
-    type: Number, 
-    default: 0 
+  expiresAt: {
+    type: Date,
+    required: true,
+    index: { expires: 0 } // Auto-delete document after expiration
   }
 }, {
   timestamps: true
 });
 
-// Auto delete OTPs after expiry
 OTPSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export default mongoose.model<IOTP>('OTP', OTPSchema);

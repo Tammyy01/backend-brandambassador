@@ -1,9 +1,9 @@
 import express from 'express';
-import { logCall, getCalls } from '../controllers/callController';
+import { CallController } from '../controllers/callController';
 
 const router = express.Router();
 
-router.post('/applications/:applicationId/calls', logCall);
-router.get('/applications/:applicationId/calls', getCalls);
+router.post('/users/:userId/calls', CallController.create);
+router.get('/users/:userId/calls', CallController.list);
 
 export default router;

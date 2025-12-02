@@ -1,94 +1,114 @@
 import { Request, Response } from 'express';
 import Notification from '../models/Notification';
-import AmbassadorApplication from '../models/AmbassadorApplication';
+import User from '../models/User';
+import { sendSuccessResponse, sendNotFoundResponse, sendServerErrorResponse } from '../helpers/responses/httpResponses';
 
-// Get notifications for a user
-export const list = async (req: Request, res: Response) => {
-  try {
-    const { applicationId } = req.params;
-    const notifications = await Notification.find({ applicationId })
-      .sort({ createdAt: -1 })
-      .limit(50);
-    
-    res.json(notifications);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching notifications', error });
-  }
-};
+export class NotificationController {
+  // List notifications for a user
+  static async list(req: Request, res: Response): Promise<Response> {
+    try {
+      const { userId } = req.params;
 
-// Mark a notification as read
-export const markRead = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const notification = await Notification.findByIdAndUpdate(
-      id,
-      { read: true },
-      { new: true }
-    );
-    
-    if (!notification) {
-      return res.status(404).json({ message: 'Notification not found' });
+      const notifications = await Notification.find({ userId })
+        .sort({ createdAt: -1 })
+        .limit(50);
+
+      return sendSuccessResponse(res, 'Notifications retrieved', { notifications });
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to retrieve notifications: ' + error.message);
     }
-
-    res.json(notification);
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating notification', error });
   }
-};
 
-// Mark all notifications as read
-export const markAllRead = async (req: Request, res: Response) => {
-  try {
-    const { applicationId } = req.params;
-    await Notification.updateMany(
-      { applicationId, read: false },
-      { read: true }
-    );
-    
-    res.json({ message: 'All notifications marked as read' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating notifications', error });
+  // Mark a notification as read
+  static async markAsRead(req: Request, res: Response): Promise<Response> {
+    try {
+      const { userId, notificationId } = req.params;
+
+      const notification = await Notification.findOneAndUpdate(
+        { _id: notificationId, userId },
+        { read: true },
+        { new: true }
+      );
+
+      if (!notification) {
+        return sendNotFoundResponse(res, 'Notification not found');
+      }
+
+      return sendSuccessResponse(res, 'Notification marked as read', { notification });
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to mark notification as read: ' + error.message);
+    }
   }
-};
 
-// Save push subscription
-export const saveSubscription = async (req: Request, res: Response) => {
-  try {
-    const { applicationId } = req.params;
-    const { subscription } = req.body;
+  // Mark all notifications as read
+  static async markAllAsRead(req: Request, res: Response): Promise<Response> {
+    try {
+      const { userId } = req.params;
 
-    await AmbassadorApplication.findByIdAndUpdate(
-      applicationId,
-      { pushSubscription: subscription }
-    );
+      await Notification.updateMany(
+        { userId, read: false },
+        { read: true }
+      );
 
-    res.json({ message: 'Push subscription saved' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error saving subscription', error });
+      return sendSuccessResponse(res, 'All notifications marked as read');
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to mark all notifications as read: ' + error.message);
+    }
   }
-};
 
-// Create a notification (Internal/System use)
-export const create = async (req: Request, res: Response) => {
-  try {
-    const { applicationId, type, title, description, metadata } = req.body;
-    
-    const notification = new Notification({
-      applicationId,
-      type,
-      title,
-      description,
-      metadata
-    });
+  // Save push subscription
+  static async saveSubscription(req: Request, res: Response): Promise<Response> {
+    try {
+      const { applicationId } = req.params; // Keeping applicationId param name for now if route uses it, but logic uses User
+      // Ideally route should use userId, let's check if we can support both or if route was updated.
+      // The route in notificationRoutes.ts uses :applicationId for this specific endpoint in the previous diff?
+      // Wait, in step 1279, I updated notificationRoutes to use :applicationId for saveSubscription.
+      // "router.post('/applications/:applicationId/push-subscription', NotificationController.saveSubscription);"
+      // So I should expect applicationId in params, but treat it as userId.
+      
+      const userId = applicationId || req.params.userId;
+      const { subscription } = req.body;
 
-    await notification.save();
+      const user = await User.findByIdAndUpdate(
+        userId,
+        { pushSubscription: subscription },
+        { new: true }
+      );
 
-    // TODO: Trigger actual push notification here if subscription exists
-    // const user = await AmbassadorApplication.findById(applicationId);
-    // if (user?.pushSubscription) { ... }
+      if (!user) {
+        return sendNotFoundResponse(res, 'User not found');
+      }
 
-    res.status(201).json(notification);
-  } catch (error) {
-    res.status(500).json({ message: 'Error creating notification', error });
+      return sendSuccessResponse(res, 'Push subscription saved');
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to save subscription: ' + error.message);
+    }
   }
-};
+
+  // Create a notification (Internal/System use)
+  static async create(req: Request, res: Response): Promise<Response> {
+    try {
+      const { userId, type, title, description, metadata } = req.body;
+      // Support applicationId in body for backward compatibility if needed
+      const targetUserId = userId || req.body.applicationId;
+
+      const notification = await Notification.create({
+        userId: targetUserId,
+        type,
+        title,
+        description,
+        metadata,
+        read: false,
+        createdAt: new Date()
+      });
+
+      // TODO: Trigger actual push notification here if subscription exists
+      // const user = await User.findById(targetUserId);
+      // if (user?.pushSubscription) { ... }
+
+      return sendSuccessResponse(res, 'Notification created', { notification });
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to create notification: ' + error.message);
+    }
+  }
+}

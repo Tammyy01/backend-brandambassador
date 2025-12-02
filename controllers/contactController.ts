@@ -1,20 +1,20 @@
 import { Request, Response } from 'express'
-import AmbassadorApplication from '../models/AmbassadorApplication'
+import User from '../models/User'
 import Contact from '../models/Contact'
 import { sendSuccessResponse, sendBadRequestResponse, sendNotFoundResponse, sendServerErrorResponse } from '../helpers/responses/httpResponses'
 
 export class ContactController {
   static async list(req: Request, res: Response): Promise<Response> {
     try {
-      const { applicationId } = req.params
+      const { userId } = req.params
       const q = String(req.query.q || '').trim()
 
-      const application = await AmbassadorApplication.findById(applicationId)
-      if (!application) {
-        return sendNotFoundResponse(res, 'Application not found')
+      const user = await User.findById(userId)
+      if (!user) {
+        return sendNotFoundResponse(res, 'User not found')
       }
 
-      const filter: any = { applicationId: application._id }
+      const filter: any = { applicationId: user._id } // Keeping applicationId in Contact model for now, but referencing user._id
       if (q) {
         const regex = new RegExp(q, 'i')
         filter.$or = [{ name: regex }, { company: regex }, { event: regex }, { note: regex }, { address: regex }, { linkedinUrl: regex }]
@@ -29,20 +29,20 @@ export class ContactController {
 
   static async create(req: Request, res: Response): Promise<Response> {
     try {
-      const { applicationId } = req.params
+      const { userId } = req.params
       const { name, company, avatar, event, note, phone, email, address, linkedinUrl, starred } = req.body
 
       if (!name) {
         return sendBadRequestResponse(res, 'Name is required')
       }
 
-      const application = await AmbassadorApplication.findById(applicationId)
-      if (!application) {
-        return sendNotFoundResponse(res, 'Application not found')
+      const user = await User.findById(userId)
+      if (!user) {
+        return sendNotFoundResponse(res, 'User not found')
       }
 
       const contact = await Contact.create({
-        applicationId: application._id,
+        applicationId: user._id,
         name,
         company,
         avatar,
@@ -63,16 +63,16 @@ export class ContactController {
 
   static async update(req: Request, res: Response): Promise<Response> {
     try {
-      const { applicationId, contactId } = req.params
+      const { userId, contactId } = req.params
       const update = req.body || {}
 
-      const application = await AmbassadorApplication.findById(applicationId)
-      if (!application) {
-        return sendNotFoundResponse(res, 'Application not found')
+      const user = await User.findById(userId)
+      if (!user) {
+        return sendNotFoundResponse(res, 'User not found')
       }
 
       const contact = await Contact.findOneAndUpdate(
-        { _id: contactId, applicationId: application._id },
+        { _id: contactId, applicationId: user._id },
         update,
         { new: true }
       )
@@ -89,14 +89,14 @@ export class ContactController {
 
   static async remove(req: Request, res: Response): Promise<Response> {
     try {
-      const { applicationId, contactId } = req.params
+      const { userId, contactId } = req.params
 
-      const application = await AmbassadorApplication.findById(applicationId)
-      if (!application) {
-        return sendNotFoundResponse(res, 'Application not found')
+      const user = await User.findById(userId)
+      if (!user) {
+        return sendNotFoundResponse(res, 'User not found')
       }
 
-      const deleted = await Contact.findOneAndDelete({ _id: contactId, applicationId: application._id })
+      const deleted = await Contact.findOneAndDelete({ _id: contactId, applicationId: user._id })
       if (!deleted) {
         return sendNotFoundResponse(res, 'Contact not found')
       }

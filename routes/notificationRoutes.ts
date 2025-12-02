@@ -1,21 +1,21 @@
 import express from 'express';
-import * as notificationController from '../controllers/notificationController';
+import { NotificationController } from '../controllers/notificationController';
 
 const router = express.Router();
 
 // Get notifications for a user
-router.get('/applications/:applicationId/notifications', notificationController.list);
+router.get('/users/:userId/notifications', NotificationController.list);
 
 // Mark a notification as read
-router.patch('/notifications/:id/read', notificationController.markRead);
+router.patch('/users/:userId/notifications/:notificationId/read', NotificationController.markAsRead);
 
 // Mark all notifications as read
-router.post('/applications/:applicationId/notifications/read-all', notificationController.markAllRead);
+router.patch('/users/:userId/notifications/read-all', NotificationController.markAllAsRead);
 
 // Save push subscription
-router.post('/applications/:applicationId/push-subscription', notificationController.saveSubscription);
+router.post('/users/:userId/push-subscription', NotificationController.saveSubscription);
 
 // Create a notification (for testing/system)
-router.post('/notifications/create', notificationController.create);
+router.post('/notifications/create', NotificationController.create);
 
 export default router;

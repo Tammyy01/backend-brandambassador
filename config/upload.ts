@@ -50,5 +50,5 @@ export const uploadVideo = multer({
 });
 
 export const getVideoUrl = (filename: string): string => {
-  return `/api/uploads/videos/${filename}`;
+  return `/api/users/uploads/videos/${filename}`;
 };

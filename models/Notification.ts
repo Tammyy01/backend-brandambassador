@@ -1,27 +1,36 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
 export interface INotification extends Document {
-  applicationId: mongoose.Types.ObjectId;
-  type: 'event' | 'reimbursement' | 'info' | 'system';
+  userId: mongoose.Types.ObjectId;
   title: string;
-  description: string;
+  message: string;
+  type: string;
   read: boolean;
-  metadata?: any; // For linking to specific events or reimbursements
   createdAt: Date;
-  updatedAt: Date;
 }
 
 const NotificationSchema: Schema = new Schema({
-  applicationId: { type: Schema.Types.ObjectId, ref: 'AmbassadorApplication', required: true },
-  type: { 
-    type: String, 
-    enum: ['event', 'reimbursement', 'info', 'system'], 
-    required: true 
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  read: { type: Boolean, default: false },
-  metadata: { type: Schema.Types.Mixed }
+  title: {
+    type: String,
+    required: true
+  },
+  message: {
+    type: String,
+    required: true
+  },
+  type: {
+    type: String,
+    default: 'info'
+  },
+  read: {
+    type: Boolean,
+    default: false
+  }
 }, {
   timestamps: true
 });

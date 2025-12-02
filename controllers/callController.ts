@@ -1,52 +1,50 @@
-import { Request, Response } from 'express';
-import Call from '../models/Call';
+import { Request, Response } from 'express'
+import User from '../models/User'
+import Call from '../models/Call'
+import { sendSuccessResponse, sendBadRequestResponse, sendNotFoundResponse, sendServerErrorResponse } from '../helpers/responses/httpResponses'
 
-export const logCall = async (req: Request, res: Response) => {
-  try {
-    const { applicationId } = req.params;
-    const { contactId, notes } = req.body;
+export class CallController {
+  static async list(req: Request, res: Response): Promise<Response> {
+    try {
+      const { userId } = req.params
 
-    const call = new Call({
-      applicationId,
-      contactId,
-      notes,
-      status: 'Initiated',
-    });
+      const user = await User.findById(userId)
+      if (!user) {
+        return sendNotFoundResponse(res, 'User not found')
+      }
 
-    await call.save();
-
-    res.status(201).json({
-      success: true,
-      data: call,
-    });
-  } catch (error: any) {
-    console.error('Error logging call:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error logging call',
-      error: error.message,
-    });
+      const calls = await Call.find({ applicationId: user._id }).sort({ createdAt: -1 })
+      return sendSuccessResponse(res, 'Calls retrieved', { calls })
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to retrieve calls: ' + error.message)
+    }
   }
-};
 
-export const getCalls = async (req: Request, res: Response) => {
-  try {
-    const { applicationId } = req.params;
+  static async create(req: Request, res: Response): Promise<Response> {
+    try {
+      const { userId } = req.params
+      const { contactId, duration, notes, date } = req.body
 
-    const calls = await Call.find({ applicationId })
-      .sort({ date: -1 })
-      .populate('contactId', 'name avatar company'); // Populate contact details
+      if (!contactId || !duration || !date) {
+        return sendBadRequestResponse(res, 'Contact, duration, and date are required')
+      }
 
-    res.status(200).json({
-      success: true,
-      data: calls,
-    });
-  } catch (error: any) {
-    console.error('Error fetching calls:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error fetching calls',
-      error: error.message,
-    });
+      const user = await User.findById(userId)
+      if (!user) {
+        return sendNotFoundResponse(res, 'User not found')
+      }
+
+      const call = await Call.create({
+        applicationId: user._id,
+        contactId,
+        duration,
+        notes,
+        date
+      })
+
+      return sendSuccessResponse(res, 'Call logged', { call })
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to log call: ' + error.message)
+    }
   }
-};
+}
