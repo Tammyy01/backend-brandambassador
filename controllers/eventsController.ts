@@ -3,6 +3,8 @@ import Event from '../models/Event'
 import User from '../models/User'
 import { sendSuccessResponse, sendNotFoundResponse, sendServerErrorResponse } from '../helpers/responses/httpResponses'
 
+import Notification from '../models/Notification'
+
 export class EventsController {
   static async list(req: Request, res: Response): Promise<Response> {
     try {
@@ -38,6 +40,24 @@ export class EventsController {
         date,
         location
       })
+
+      // Notify all users about the new event
+      const users = await User.find({}, '_id');
+      console.log(`Found ${users.length} users to notify`);
+      
+      const notifications = users.map(user => ({
+        userId: user._id,
+        title: `New Event: ${title}`,
+        description: `A new event "${title}" has been added. Check it out!`,
+        type: 'event',
+        read: false,
+        createdAt: new Date()
+      }));
+
+      if (notifications.length > 0) {
+        const result = await Notification.insertMany(notifications);
+        console.log(`Created ${result.length} notifications`);
+      }
 
       return sendSuccessResponse(res, 'Event created', { event })
     } catch (error: any) {
