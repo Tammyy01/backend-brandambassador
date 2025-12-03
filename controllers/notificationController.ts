@@ -19,6 +19,17 @@ export class NotificationController {
     }
   }
 
+   // Get unread notification count
+  static async getUnreadCount(req: Request, res: Response): Promise<Response> {
+    try {
+      const { userId } = req.params;
+      const count = await Notification.countDocuments({ userId, read: false });
+      return sendSuccessResponse(res, 'Unread count retrieved', { count });
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to retrieve unread count: ' + error.message);
+    }
+  }
+  
   // Mark a notification as read
   static async markAsRead(req: Request, res: Response): Promise<Response> {
     try {

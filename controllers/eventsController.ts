@@ -49,7 +49,7 @@ export class EventsController {
         const notifications = users.map(user => ({
           userId: user._id,
           title: `New Event: ${title}`,
-          description: `A new event "${title}" has been added. Check it out!`,
+          message: `A new event "${title}" has been added. Check it out!`,
           type: 'event',
           read: false,
           createdAt: new Date()

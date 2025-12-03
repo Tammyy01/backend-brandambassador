@@ -6,6 +6,9 @@ const router = express.Router();
 // Get notifications for a user
 router.get('/users/:userId/notifications', NotificationController.list);
 
+// Get unread notification count
+router.get('/users/:userId/notifications/unread-count', NotificationController.getUnreadCount);
+
 // Mark a notification as read
 router.patch('/users/:userId/notifications/:notificationId/read', NotificationController.markAsRead);
 
