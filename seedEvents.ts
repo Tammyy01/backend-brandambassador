@@ -7,7 +7,7 @@ dotenv.config();
 const sampleEvents = [
   {
     title: "Lagos Tech Summit",
-    date: new Date("2025-12-04"),
+    date: new Date("2025-12-07"),
     time: "10:00AM",
     description: "The biggest tech gathering in West Africa. Join us at the Landmark Centre for a day of innovation and networking.",
     location: "Landmark Centre, Victoria Island, Lagos",
@@ -25,7 +25,7 @@ const sampleEvents = [
   },
   {
     title: "Port Harcourt Startup Meetup",
-    date: new Date("2025-12-08"),
+    date: new Date("2025-12-02"),
     time: "5:00PM",
     description: "A meetup for founders and investors in the Garden City. Connect and grow your business.",
     location: "Tech Creek, Aba Road, Port Harcourt",
@@ -33,9 +33,6 @@ const sampleEvents = [
     attendees: []
   }
 ];
-
-import User from './models/User';
-import Notification from './models/Notification';
 
 const seedEvents = async () => {
   try {
@@ -52,29 +49,6 @@ const seedEvents = async () => {
 
     const createdEvents = await Event.insertMany(sampleEvents);
     console.log(`🎉 Successfully added ${createdEvents.length} events`);
-
-    // Notify all users about the seeded events
-    const users = await User.find({}, '_id');
-    console.log(`Found ${users.length} users to notify`);
-
-    const notifications = [];
-    for (const event of createdEvents) {
-      for (const user of users) {
-        notifications.push({
-          userId: user._id,
-          title: `New Event: ${event.title}`,
-          description: `A new event "${event.title}" has been added. Check it out!`,
-          type: 'event',
-          read: false,
-          createdAt: new Date()
-        });
-      }
-    }
-
-    if (notifications.length > 0) {
-      await Notification.insertMany(notifications);
-      console.log(`Created ${notifications.length} notifications`);
-    }
 
     process.exit(0);
   } catch (error) {

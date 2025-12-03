@@ -42,21 +42,26 @@ export class EventsController {
       })
 
       // Notify all users about the new event
-      const users = await User.find({}, '_id');
-      console.log(`Found ${users.length} users to notify`);
-      
-      const notifications = users.map(user => ({
-        userId: user._id,
-        title: `New Event: ${title}`,
-        description: `A new event "${title}" has been added. Check it out!`,
-        type: 'event',
-        read: false,
-        createdAt: new Date()
-      }));
+      try {
+        const users = await User.find({}, '_id');
+        console.log(`Found ${users.length} users to notify`);
+        
+        const notifications = users.map(user => ({
+          userId: user._id,
+          title: `New Event: ${title}`,
+          description: `A new event "${title}" has been added. Check it out!`,
+          type: 'event',
+          read: false,
+          createdAt: new Date()
+        }));
 
-      if (notifications.length > 0) {
-        const result = await Notification.insertMany(notifications);
-        console.log(`Created ${result.length} notifications`);
+        if (notifications.length > 0) {
+          const result = await Notification.insertMany(notifications);
+          console.log(`Created ${result.length} notifications`);
+        }
+      } catch (notifyError) {
+        console.error('Failed to create notifications:', notifyError);
+        // Continue execution - don't fail event creation just because notification failed
       }
 
       return sendSuccessResponse(res, 'Event created', { event })
