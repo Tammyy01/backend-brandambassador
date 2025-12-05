@@ -59,7 +59,6 @@ export const sendEmailOTP = async (email: string, otp: string, firstName: string
             </div>
             <div class="footer">
               <p>&copy; ${new Date().getFullYear()} ${appName}. All rights reserved.</p>
-              <p>Need help? Contact us at <a href="mailto:${process.env.SUPPORT_EMAIL || 'support@brandambassador.com'}">${process.env.SUPPORT_EMAIL || 'support@brandambassador.com'}</a></p>
             </div>
           </div>
         </body>
