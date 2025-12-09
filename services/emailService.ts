@@ -1,4 +1,4 @@
-import sgMail from '@sendgrid/mail';
+import sgMail, { MailDataRequired } from '@sendgrid/mail';
 
 // Initialize SendGrid
 if (process.env.SENDGRID_API_KEY) {
@@ -16,8 +16,8 @@ try {
 export const sendEmailOTP = async (email: string, otp: string, firstName: string): Promise<{success: boolean; error?: string}> => {
   try {
     // Fix: Ensure from email is always defined
-    const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.SMTP_USER || 'akinsolaoluwatamilore@punch.agency';
-    const appName = process.env.APP_NAME || 'Brand Ambassador App';
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL;
+    const appName = process.env.APP_NAME;
 
     const msg = {
       to: email,
@@ -41,32 +41,13 @@ export const sendEmailOTP = async (email: string, otp: string, firstName: string
           </style>
         </head>
         <body>
-          <div class="container">
-            <div class="header">
-              <h1>${appName}</h1>
-              <h2>Email Verification</h2>
-            </div>
-            <div class="content">
-              <p>Hello <strong>${firstName}</strong>,</p>
-              <p>Thank you for applying to become a Brand Ambassador. Please use the following verification code to complete your email verification:</p>
-              
-              <div class="otp-code">${otp}</div>
-              
-              <p>This code will expire in <strong>10 minutes</strong>.</p>
-              <p>If you didn't request this verification code, please ignore this email.</p>
-              
-              <p>Best regards,<br><strong>The ${appName} Team</strong></p>
-            </div>
-            <div class="footer">
-              <p>&copy; ${new Date().getFullYear()} ${appName}. All rights reserved.</p>
-            </div>
-          </div>
+          <div class="otp-code">${otp}</div>
         </body>
         </html>
       `,
     };
 
-    await sgMail.send(msg);
+    await sgMail.send(msg as MailDataRequired);
     console.log(`✅ Email OTP sent to ${email}`);
     return { success: true };
   } catch (error: any) {
@@ -81,7 +62,7 @@ export const sendEmailOTP = async (email: string, otp: string, firstName: string
 export const sendApplicationSubmittedEmail = async (email: string, firstName: string, applicationId: string): Promise<{success: boolean; error?: string}> => {
   try {
     // Fix: Ensure from email is always defined
-    const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.SMTP_USER || 'noreply@brandambassador.com';
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL;
     const appName = process.env.APP_NAME || 'Brand Ambassador App';
 
     const msg = {
@@ -134,7 +115,7 @@ export const sendApplicationSubmittedEmail = async (email: string, firstName: st
       `,
     };
 
-    await sgMail.send(msg);
+    await sgMail.send(msg as MailDataRequired);
     console.log(`✅ Application confirmation sent to ${email}`);
     return { success: true };
   } catch (error: any) {
