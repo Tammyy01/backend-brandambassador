@@ -105,13 +105,10 @@ export const sendEmailOTP = async (email: string, otp: string, firstName: string
       <p style="font-size: 14px; color: #666;">
         If you did not request this verification code, you can safely ignore this email.
       </p>
-      <p style="margin-top: 30px;">
-        Best regards,<br />
-        <strong>The ${appName} Team</strong>
-      </p>
+     
     </div>
     <div class="footer">
-      // <p>&copy; ${new Date().getFullYear()} ${appName}. All rights reserved.</p>
+      
       <div class="address">
       <p>
           If you have any questions, suggestions or feedback, please email us at <a href="mailto:{'support@punchreferrals.com'}">support@punchreferrals.com</a><br />
@@ -221,3 +218,8 @@ export const sendApplicationSubmittedEmail = async (email: string, firstName: st
 //   Our mailing address:<br />
 //   <strong>${companyAddress}</strong>
 // </p>
+
+//  <p style="margin-top: 30px;">
+//         Best regards,<br />
+//         <strong>The ${appName} Team</strong>
+//       </p>
