@@ -20,7 +20,7 @@ export const sendEmailOTP = async (email: string, otp: string, firstName: string
     const appName = process.env.APP_NAME || 'Brand Ambassador App';
 
     // UPDATE THIS: Your actual physical mailing address (Required by law)
-    const companyAddress = '20372 Estero Crossing Road, Estero, FL 33928';
+    const companyAddress = '20372 Estero Crossing Road, Estero, FL 33928, United States.';
 
     const msg = {
       to: email,
@@ -98,10 +98,10 @@ export const sendEmailOTP = async (email: string, otp: string, firstName: string
       <p style="margin-top:8px; opacity:0.9; font-size:16px;">Email Verification Code</p>
     </div>
     <div class="content">
-      <p>Hello <strong>${firstName}</strong>,</p>
-      <p>Thank you for applying to become a Brand Ambassador. Please use the verification code below to complete your email confirmation:</p>
+      <p>Hello there!,</p>
+      <p>Thank you for applying to become a Brand Ambassador. Please use the OTP below to complete your email verification:</p>
       <div class="otp-box">${otp}</div>
-      <p>This code will expire in <strong>10 minutes</strong>.</p>
+      <p>This code will expire in 10 minutes.</p>
       <p style="font-size: 14px; color: #666;">
         If you did not request this verification code, you can safely ignore this email.
       </p>
@@ -111,12 +111,11 @@ export const sendEmailOTP = async (email: string, otp: string, firstName: string
       </p>
     </div>
     <div class="footer">
-      <p>&copy; ${new Date().getFullYear()} ${appName}. All rights reserved.</p>
+      // <p>&copy; ${new Date().getFullYear()} ${appName}. All rights reserved.</p>
       <div class="address">
-        <p>
-          You are receiving this email because you signed up for ${appName}.<br />
-          Our mailing address:<br />
-          <strong>${companyAddress}</strong>
+      <p>
+          If you have any questions, suggestions or feedback, please email us at <a href="mailto:{'support@punchreferrals.com'}">support@punchreferrals.com</a><br />
+    
         </p>
       </div>
     </div>
@@ -216,3 +215,9 @@ export const sendApplicationSubmittedEmail = async (email: string, firstName: st
 //     --primary-foreground: 0 0% 100%;
 
 //     --ring: 148 41% 43%;
+
+// <p>
+//   You are receiving this email because you signed up as a Punch Brand Ambassador.<br />
+//   Our mailing address:<br />
+//   <strong>${companyAddress}</strong>
+// </p>
