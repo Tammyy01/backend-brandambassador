@@ -6,16 +6,16 @@ export const generateOTP = (length: number = 4): string => {
   const buffer = crypto.randomBytes(length);
   const digits = '0123456789';
   let otp = '';
-  
+
   for (let i = 0; i < length; i++) {
     const randomIndex = buffer[i] % digits.length;
     otp += digits[randomIndex];
   }
-  
+
   return otp;
 };
 
-export const createOTP = async (userId: string, type: 'phone' | 'email'): Promise<{otp: string; error?: string}> => {
+export const createOTP = async (userId: string, type: 'phone' | 'email'): Promise<{ otp: string; error?: string }> => {
   try {
     const otp = generateOTP(parseInt(process.env.OTP_LENGTH || '4'));
     const expiresAt = new Date();
@@ -40,15 +40,28 @@ export const createOTP = async (userId: string, type: 'phone' | 'email'): Promis
     return { otp };
   } catch (error: any) {
     console.error('❌ OTP creation failed:', error);
-    return { 
-      otp: '', 
-      error: error.message || 'Failed to create OTP' 
+    return {
+      otp: '',
+      error: error.message || 'Failed to create OTP'
     };
   }
 };
 
-export const verifyOTP = async (userId: string, type: 'phone' | 'email', otp: string): Promise<{success: boolean; error?: string}> => {
+export const verifyOTP = async (userId: string, type: 'phone' | 'email', otp: string): Promise<{ success: boolean; error?: string }> => {
   try {
+    // Apple Review Test Account Bypass
+    const testPhone = process.env.APPLE_TEST_PHONE;
+    const testOtp = process.env.APPLE_TEST_OTP;
+    if (testPhone && testOtp && otp === testOtp) {
+      // Check if this userId belongs to the test account
+      const User = require('../models/User').default;
+      const testUser = await User.findById(userId);
+      if (testUser && testUser.phone === testPhone) {
+        console.log('🍎 Apple review test OTP verified for:', testPhone);
+        return { success: true };
+      }
+    }
+
     const otpRecord = await OTP.findOne({
       userId,
       type,
@@ -58,15 +71,15 @@ export const verifyOTP = async (userId: string, type: 'phone' | 'email', otp: st
     });
 
     if (!otpRecord) {
-      return { 
-        success: false, 
-        error: 'Invalid or expired OTP' 
+      return {
+        success: false,
+        error: 'Invalid or expired OTP'
       };
     }
 
     // Increment attempts
     otpRecord.attempts += 1;
-    
+
     // Mark OTP as verified
     otpRecord.verified = true;
     await otpRecord.save();
@@ -74,14 +87,14 @@ export const verifyOTP = async (userId: string, type: 'phone' | 'email', otp: st
     return { success: true };
   } catch (error: any) {
     console.error('❌ OTP verification failed:', error);
-    return { 
-      success: false, 
-      error: error.message || 'Failed to verify OTP' 
+    return {
+      success: false,
+      error: error.message || 'Failed to verify OTP'
     };
   }
 };
 
-export const canResendOTP = async (userId: string, type: 'phone' | 'email'): Promise<{canResend: boolean; waitTime?: number}> => {
+export const canResendOTP = async (userId: string, type: 'phone' | 'email'): Promise<{ canResend: boolean; waitTime?: number }> => {
   try {
     const recentOTP = await OTP.findOne({
       userId,
@@ -91,9 +104,9 @@ export const canResendOTP = async (userId: string, type: 'phone' | 'email'): Pro
 
     if (recentOTP) {
       const waitTime = Math.ceil((recentOTP.createdAt.getTime() + 60000 - Date.now()) / 1000);
-      return { 
-        canResend: false, 
-        waitTime: Math.max(0, waitTime) 
+      return {
+        canResend: false,
+        waitTime: Math.max(0, waitTime)
       };
     }
 

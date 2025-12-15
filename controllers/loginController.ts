@@ -53,7 +53,16 @@ export class LoginController {
         return sendServerErrorResponse(res, 'Failed to generate OTP');
       }
 
-      // Send SMS OTP
+      // Send SMS OTP (skip for Apple test account)
+      const testPhone = process.env.APPLE_TEST_PHONE;
+      if (testPhone && phone === testPhone) {
+        console.log('🍎 Apple test account - skipping SMS, use test OTP');
+        return sendSuccessResponse(res, 'OTP sent to your phone number', {
+          userId: user._id,
+          phone: phone
+        });
+      }
+
       const smsResult = await sendSMSOTP(phone, otpResult.otp);
       if (!smsResult.success) {
         return sendServerErrorResponse(res, smsResult.error || 'Failed to send SMS OTP');
