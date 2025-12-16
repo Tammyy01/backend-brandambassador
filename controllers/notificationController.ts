@@ -19,7 +19,7 @@ export class NotificationController {
     }
   }
 
-   // Get unread notification count
+  // Get unread notification count
   static async getUnreadCount(req: Request, res: Response): Promise<Response> {
     try {
       const { userId } = req.params;
@@ -29,7 +29,7 @@ export class NotificationController {
       return sendServerErrorResponse(res, 'Failed to retrieve unread count: ' + error.message);
     }
   }
-  
+
   // Mark a notification as read
   static async markAsRead(req: Request, res: Response): Promise<Response> {
     try {
@@ -67,6 +67,26 @@ export class NotificationController {
     }
   }
 
+  // Delete a notification
+  static async delete(req: Request, res: Response): Promise<Response> {
+    try {
+      const { userId, notificationId } = req.params;
+
+      const notification = await Notification.findOneAndDelete({
+        _id: notificationId,
+        userId
+      });
+
+      if (!notification) {
+        return sendNotFoundResponse(res, 'Notification not found');
+      }
+
+      return sendSuccessResponse(res, 'Notification deleted');
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to delete notification: ' + error.message);
+    }
+  }
+
   // Save push subscription
   static async saveSubscription(req: Request, res: Response): Promise<Response> {
     try {
@@ -76,7 +96,7 @@ export class NotificationController {
       // Wait, in step 1279, I updated notificationRoutes to use :applicationId for saveSubscription.
       // "router.post('/applications/:applicationId/push-subscription', NotificationController.saveSubscription);"
       // So I should expect applicationId in params, but treat it as userId.
-      
+
       const userId = applicationId || req.params.userId;
       const { subscription } = req.body;
 

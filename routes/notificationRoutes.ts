@@ -15,6 +15,9 @@ router.patch('/users/:userId/notifications/:notificationId/read', NotificationCo
 // Mark all notifications as read
 router.patch('/users/:userId/notifications/read-all', NotificationController.markAllAsRead);
 
+// Delete a notification
+router.delete('/users/:userId/notifications/:notificationId', NotificationController.delete);
+
 // Save push subscription
 router.post('/users/:userId/push-subscription', NotificationController.saveSubscription);
 
