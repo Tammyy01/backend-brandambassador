@@ -29,7 +29,7 @@ export class ReimbursementController {
   static async create(req: Request, res: Response): Promise<Response> {
     try {
       const { userId } = req.params
-      const { amount, description, category, receiptUrl, date } = req.body
+      const { amount, description, category, receiptUrl, date, event } = req.body
 
       if (!amount || !description || !category || !date) {
         return sendBadRequestResponse(res, 'Amount, description, category, and date are required')
@@ -45,6 +45,7 @@ export class ReimbursementController {
         amount,
         description,
         category,
+        event,
         receiptUrl,
         date,
         status: 'pending'
@@ -99,7 +100,7 @@ export class ReimbursementController {
     try {
       const { status } = req.query;
       const filter: any = {};
-      
+
       if (status && status !== 'all') {
         filter.status = status;
       }
@@ -127,8 +128,8 @@ export class ReimbursementController {
 
       const reimbursement = await Reimbursement.findByIdAndUpdate(
         reimbursementId,
-        { 
-          status, 
+        {
+          status,
           adminNote,
           updatedAt: new Date()
         },

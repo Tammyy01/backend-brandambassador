@@ -4,6 +4,8 @@ export interface IReimbursement extends Document {
   applicationId: mongoose.Types.ObjectId; // Keeping applicationId for now as per summary, but referencing User
   amount: number;
   description: string;
+  event?: string;
+  category?: string;
   status: 'pending' | 'approved' | 'rejected' | 'paid';
   receiptUrl?: string;
   date: Date;
@@ -25,6 +27,12 @@ const ReimbursementSchema: Schema = new Schema({
     type: String,
     required: true
   },
+  event: {
+    type: String
+  },
+  category: {
+    type: String
+  },
   status: {
     type: String,
     enum: ['pending', 'approved', 'rejected', 'paid'],
@@ -42,3 +50,4 @@ const ReimbursementSchema: Schema = new Schema({
 });
 
 export default mongoose.model<IReimbursement>('Reimbursement', ReimbursementSchema);
+
