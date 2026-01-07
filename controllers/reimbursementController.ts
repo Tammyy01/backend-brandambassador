@@ -57,6 +57,50 @@ export class ReimbursementController {
     }
   }
 
+
+
+  static async update(req: Request, res: Response): Promise<Response> {
+    try {
+      const { userId, id } = req.params;
+      const reimbursementId = id;
+      const { amount, description, category, receiptUrl, date, event } = req.body;
+
+      if (!amount || !description || !category || !date) {
+        return sendBadRequestResponse(res, 'Amount, description, category, and date are required');
+      }
+
+      // Ensure user owns this reimbursement
+      const reimbursement = await Reimbursement.findOne({ _id: reimbursementId, applicationId: userId });
+      if (!reimbursement) {
+        return sendNotFoundResponse(res, 'Reimbursement not found or access denied');
+      }
+
+      // Check status - perhaps prevent editing if already approved/paid?
+      // For now, allowing edits but maybe useful to restrict. 
+      // If restricted: if (reimbursement.status !== 'pending') return sendBadRequestResponse(res, 'Cannot edit processed requests');
+
+      const updatedReimbursement = await Reimbursement.findByIdAndUpdate(
+        reimbursementId,
+        {
+          amount,
+          description,
+          category,
+          event,
+          receiptUrl,
+          date,
+          // Only update status if specifically requested or maybe reset to pending on edit?
+          // Usually edits on rejected/paid items should probably re-trigger review?
+          // For now, let's strictly update the content.
+        },
+        { new: true }
+      );
+
+      return sendSuccessResponse(res, 'Reimbursement updated successfully', { reimbursement: updatedReimbursement });
+    } catch (error: any) {
+      return sendServerErrorResponse(res, 'Failed to update reimbursement: ' + error.message);
+    }
+  }
+
   static async getStats(req: Request, res: Response): Promise<Response> {
     try {
       const { userId } = req.params
