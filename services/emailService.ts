@@ -1,4 +1,4 @@
-import sgMail, { MailDataRequired } from '@sendgrid/mail';
+import sgMail from '@sendgrid/mail';
 
 // Initialize SendGrid
 if (process.env.SENDGRID_API_KEY) {
@@ -16,11 +16,8 @@ try {
 export const sendEmailOTP = async (email: string, otp: string, firstName: string): Promise<{ success: boolean; error?: string }> => {
   try {
     // Fix: Ensure from email is always defined
-    const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.SMTP_USER;
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.SMTP_USER || 'akinsolaoluwatamilore@punch.agency';
     const appName = process.env.APP_NAME || 'Brand Ambassador App';
-
-    // UPDATE THIS: Your actual physical mailing address (Required by law)
-    const companyAddress = '20372 Estero Crossing Road, Estero, FL 33928, United States.';
 
     const msg = {
       to: email,
@@ -29,100 +26,48 @@ export const sendEmailOTP = async (email: string, otp: string, firstName: string
         name: appName
       },
       subject: 'Your Ambassador Application Verification Code',
-      // 1. ADDED: Plain text version (Crucial for spam filters)
-      text: `Hello ${firstName}, Thank you for applying to ${appName}. Your verification code is: ${otp}. This code expires in 10 minutes. \n\n ${appName} \n ${companyAddress}`,
-
-      // 2. UPDATED: HTML version with address footer
       html: `
         <!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      margin: 0;
-      padding: 0;
-      background: #F4F4F7;
-    }
-    .container {
-      max-width: 600px;
-      margin: 40px auto;
-      background: #FFFFFF;
-      border-radius: 10px;
-      overflow: hidden;
-      border: 1px solid #E5E5E5;
-    }
-    .header {
-      background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
-      padding: 35px 20px;
-      text-align: center;
-      color: #FFFFFF;
-    }
-    .content {
-      padding: 30px 25px;
-    }
-    .otp-box {
-      background: #FFFFFF;
-      border: 2px dashed #667EEA;
-      padding: 20px;
-      font-size: 32px;
-      font-weight: bold;
-      text-align: center;
-      letter-spacing: 6px;
-      border-radius: 8px;
-      margin: 25px 0;
-      color: #333333;
-    }
-    .footer {
-      text-align: center;
-      padding: 20px 30px;
-      font-size: 12px;
-      color: #888;
-      background: #FAFAFA;
-      border-top: 1px solid #eee;
-    }
-    .address {
-      margin-top: 12px;
-      color: #aaa;
-      line-height: 1.5;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1 style="margin:0; font-size:24px;">${appName}</h1>
-      <p style="margin-top:8px; opacity:0.9; font-size:16px;">Email Verification Code</p>
-    </div>
-    <div class="content">
-      <p>Hello there!,</p>
-      <p>Thank you for applying to become a Brand Ambassador. Please use the OTP below to complete your email verification:</p>
-      <div class="otp-box">${otp}</div>
-      <p>This code will expire in 10 minutes.</p>
-      <p style="font-size: 14px; color: #666;">
-        If you did not request this verification code, you can safely ignore this email.
-      </p>
-     
-    </div>
-    <div class="footer">
-      
-      <div class="address">
-      <p>
-          If you have any questions, suggestions or feedback, please email us at <a href="mailto:{'support@punchreferrals.com'}">support@punchreferrals.com</a><br />
-    
-        </p>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; color: white; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .otp-code { background: #ffffff; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 8px; margin: 20px 0; border: 2px dashed #667eea; border-radius: 8px; }
+            .footer { text-align: center; margin-top: 30px; padding: 20px; color: #666; font-size: 14px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>${appName}</h1>
+              <h2>Email Verification</h2>
+            </div>
+            <div class="content">
+              <p>Hello <strong>${firstName}</strong>,</p>
+              <p>Thank you for applying to become a Brand Ambassador. Please use the following verification code to complete your email verification:</p>
+              
+              <div class="otp-code">${otp}</div>
+              
+              <p>This code will expire in <strong>10 minutes</strong>.</p>
+              <p>If you didn't request this verification code, please ignore this email.</p>
+              
+              <p>Best regards,<br><strong>The ${appName} Team</strong></p>
+            </div>
+            <div class="footer">
+              <p>&copy; ${new Date().getFullYear()} ${appName}. All rights reserved.</p>
+              <p>Need help? Contact us at <a href="mailto:${process.env.SUPPORT_EMAIL || 'support@brandambassador.com'}">${process.env.SUPPORT_EMAIL || 'support@brandambassador.com'}</a></p>
+            </div>
+          </div>
+        </body>
+        </html>
       `,
     };
 
-    await sgMail.send(msg as MailDataRequired);
+    await sgMail.send(msg);
     console.log(`✅ Email OTP sent to ${email}`);
     return { success: true };
   } catch (error: any) {
@@ -137,7 +82,7 @@ export const sendEmailOTP = async (email: string, otp: string, firstName: string
 export const sendApplicationSubmittedEmail = async (email: string, firstName: string, applicationId: string): Promise<{ success: boolean; error?: string }> => {
   try {
     // Fix: Ensure from email is always defined
-    const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.SMTP_USER;
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.SMTP_USER || 'noreply@brandambassador.com';
     const appName = process.env.APP_NAME || 'Brand Ambassador App';
 
     const msg = {
@@ -190,7 +135,7 @@ export const sendApplicationSubmittedEmail = async (email: string, firstName: st
       `,
     };
 
-    await sgMail.send(msg as MailDataRequired);
+    await sgMail.send(msg);
     console.log(`✅ Application confirmation sent to ${email}`);
     return { success: true };
   } catch (error: any) {
@@ -198,6 +143,94 @@ export const sendApplicationSubmittedEmail = async (email: string, firstName: st
     return {
       success: false,
       error: error.message || 'Failed to send confirmation email'
+    };
+  }
+};
+
+export const sendEventRegistrationEmail = async (
+  email: string,
+  userName: string,
+  eventTitle: string,
+  eventDate: string,
+  eventTime: string,
+  eventLocation: string
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || process.env.SMTP_USER || 'noreply@brandambassador.com';
+    const appName = process.env.APP_NAME || 'Brand Ambassador App';
+
+    const msg = {
+      to: email,
+      from: {
+        email: fromEmail,
+        name: appName
+      },
+      subject: `Registration Confirmed: ${eventTitle}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #419A6B 0%, #2E8B57 100%); padding: 30px; text-align: center; color: white; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .event-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 20px 0; }
+            .event-detail { margin: 10px 0; display: flex; align-items: start; }
+            .event-label { font-weight: bold; width: 80px; flex-shrink: 0; color: #666; }
+            .footer { text-align: center; margin-top: 30px; padding: 20px; color: #666; font-size: 14px; }
+            .button { display: inline-block; padding: 12px 24px; background-color: #419A6B; color: white; text-decoration: none; border-radius: 25px; font-weight: bold; margin-top: 15px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>You're Going!</h1>
+            </div>
+            <div class="content">
+              <p>Hello <strong>${userName}</strong>,</p>
+              <p>Great news! Your registration for <strong>${eventTitle}</strong> has been confirmed.</p>
+              
+              <div class="event-card">
+                <h3 style="margin-top: 0; color: #419A6B;">${eventTitle}</h3>
+                <div class="event-detail">
+                  <span class="event-label">Date:</span>
+                  <span>${new Date(eventDate).toLocaleDateString()}</span>
+                </div>
+                <div class="event-detail">
+                  <span class="event-label">Time:</span>
+                  <span>${eventTime}</span>
+                </div>
+                <div class="event-detail">
+                  <span class="event-label">Location:</span>
+                  <span>${eventLocation}</span>
+                </div>
+              </div>
+
+              <p>We've attached this event to your calendar automatically if you used the "Add to Calendar" feature in the app.</p>
+              
+              <p>We look forward to seeing you there!</p>
+              
+              <p>Best regards,<br><strong>The ${appName} Team</strong></p>
+            </div>
+            <div class="footer">
+              <p>&copy; ${new Date().getFullYear()} ${appName}. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+
+    await sgMail.send(msg);
+    console.log(`✅ Event registration email sent to ${email}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error('❌ Event registration email failed:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to send registration email'
     };
   }
 };
@@ -212,14 +245,3 @@ export const sendApplicationSubmittedEmail = async (email: string, firstName: st
 //     --primary-foreground: 0 0% 100%;
 
 //     --ring: 148 41% 43%;
-
-// <p>
-//   You are receiving this email because you signed up as a Punch Brand Ambassador.<br />
-//   Our mailing address:<br />
-//   <strong>${companyAddress}</strong>
-// </p>
-
-//  <p style="margin-top: 30px;">
-//         Best regards,<br />
-//         <strong>The ${appName} Team</strong>
-//       </p>

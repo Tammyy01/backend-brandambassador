@@ -19,7 +19,7 @@ export class EventsController {
     try {
       const { id } = req.params
       const event = await Event.findById(id).populate('attendees', 'name profileImage')
-      
+
       if (!event) {
         return sendNotFoundResponse(res, 'Event not found')
       }
@@ -33,7 +33,7 @@ export class EventsController {
   static async create(req: Request, res: Response): Promise<Response> {
     try {
       const { title, description, date, location } = req.body
-      
+
       const event = await Event.create({
         title,
         description,
@@ -45,7 +45,7 @@ export class EventsController {
       try {
         const users = await User.find({}, '_id');
         console.log(`Found ${users.length} users to notify`);
-        
+
         const notifications = users.map(user => ({
           userId: user._id,
           title: `New Event: ${title}`,
@@ -88,6 +88,31 @@ export class EventsController {
 
       if (!event) {
         return sendNotFoundResponse(res, 'Event not found')
+      }
+
+      // Send confirmation email
+      try {
+        // We already have the user from the earlier check, but we need email which might not be selected by default if schema is strict, 
+        // though usually it is. Let's ensure we have email and name.
+        // The populated attendees might have it, or we can use the user object we fetched.
+        if (user.email && user.name) {
+          const { sendEventRegistrationEmail } = await import('../services/emailService');
+
+          // Format date and time for email
+          const eventDate = new Date(event.date).toISOString();
+
+          sendEventRegistrationEmail(
+            user.email as string,
+            user.name as string,
+            event.title,
+            eventDate,
+            event.time || '',
+            event.location || ''
+          ).catch(err => console.error('Background email sending failed:', err));
+        }
+      } catch (emailError) {
+        console.error('Failed to trigger email sending:', emailError);
+        // Don't fail the request
       }
 
       return sendSuccessResponse(res, 'Joined event', { event })
